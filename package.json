@@ -4,12 +4,13 @@
   "description": "PHP language support in Atom",
   "engines": {
     "atom": "*",
-    "node": "*"
+    "node": "*",
+    "chevron": "*"
   },
   "homepage": "http://atom.github.io/language-php",
   "repository": {
     "type": "git",
-    "url": "https://github.com/atom/language-php.git"
+    "url": "https://github.com/builtbygio/language-php.git"
   },
   "license": "MIT",
   "bugs": {
