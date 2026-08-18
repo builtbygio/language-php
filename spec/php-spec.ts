@@ -980,29 +980,6 @@ class Foo {
     });
   });
 
-    describe('consts', () => it('should tokenize constants with reserved names correctly', function() {
-      const lines = grammar.tokenizeLines(`\
-class Foo {
-const Bar = 1;
-const String = 'one';
-}\
-`
-      );
-
-      expect(lines[0][0]).toEqual({value: 'class', scopes: ['source.php', 'meta.class.php', 'storage.type.class.php']});
-      expect(lines[0][2]).toEqual({value: 'Foo', scopes: ['source.php', 'meta.class.php', 'entity.name.type.class.php']});
-      expect(lines[1][1]).toEqual({value: 'const', scopes: ['source.php', 'meta.class.php', 'meta.class.body.php', 'storage.modifier.php']});
-      expect(lines[1][3]).toEqual({value: 'Bar', scopes: ['source.php', 'meta.class.php', 'meta.class.body.php', 'constant.other.php']});
-      expect(lines[1][5]).toEqual({value: '=', scopes: ['source.php', 'meta.class.php', 'meta.class.body.php', 'keyword.operator.assignment.php']});
-      expect(lines[1][7]).toEqual({value: '1', scopes: ['source.php', 'meta.class.php', 'meta.class.body.php', 'constant.numeric.decimal.php']});
-      expect(lines[2][1]).toEqual({value: 'const', scopes: ['source.php', 'meta.class.php', 'meta.class.body.php', 'storage.modifier.php']});
-      expect(lines[2][3]).toEqual({value: 'String', scopes: ['source.php', 'meta.class.php', 'meta.class.body.php', 'constant.other.php']});
-      expect(lines[2][5]).toEqual({value: '=', scopes: ['source.php', 'meta.class.php', 'meta.class.body.php', 'keyword.operator.assignment.php']});
-      expect(lines[2][7]).toEqual({value: '\'', scopes: ['source.php', 'meta.class.php', 'meta.class.body.php', 'string.quoted.single.php', 'punctuation.definition.string.begin.php']});
-      expect(lines[2][8]).toEqual({value: 'one', scopes: ['source.php', 'meta.class.php', 'meta.class.body.php', 'string.quoted.single.php']});
-      return expect(lines[2][9]).toEqual({value: '\'', scopes: ['source.php', 'meta.class.php', 'meta.class.body.php', 'string.quoted.single.php', 'punctuation.definition.string.end.php']});
-  }));
-
     describe('methods', function() {
       it('tokenizes basic method', function() {
         const lines = grammar.tokenizeLines(`\
@@ -1297,193 +1274,16 @@ class Aliased_Talker {
         return expect(tokens[15]).toEqual({value: ';', scopes: ["source.php", "punctuation.terminator.expression.php"]});
     });
 
-      it('tokenizes inheritance correctly', function() {
+      return it('tokenizes inheritance correctly', function() {
         const {tokens} = grammar.tokenizeLine('$a = new class extends Test implements ITest {  /* stuff */ };');
 
         expect(tokens[5]).toEqual({value: 'new', scopes: ["source.php", "meta.class.php", "keyword.other.new.php"]});
         expect(tokens[7]).toEqual({value: 'class', scopes: ["source.php", "meta.class.php", "storage.type.class.php"]});
         expect(tokens[9]).toEqual({value: 'extends', scopes: ["source.php", "meta.class.php", "storage.modifier.extends.php"]});
-        expect(tokens[11]).toEqual({value: 'Test', scopes: ["source.php", "meta.class.php", "entity.other.inherited-class.php"]});
+        expect(tokens[11]).toEqual({value: 'Test', scopes: ["source.php", "meta.class.php", "meta.other.inherited-class.php", "entity.other.inherited-class.php"]});
         expect(tokens[13]).toEqual({value: 'implements', scopes: ["source.php", "meta.class.php", "storage.modifier.implements.php"]});
-        return expect(tokens[15]).toEqual({value: 'ITest', scopes: ["source.php", "meta.class.php", "entity.other.inherited-class.php"]});
+        return expect(tokens[15]).toEqual({value: 'ITest', scopes: ["source.php", "meta.class.php", "meta.other.inherited-class.php", "entity.other.inherited-class.php"]});
     });
-
-      return it('tokenizes constructor arguments correctly', function() {
-        const {tokens} = grammar.tokenizeLine('new class(\'string\', optional: 123){}');
-
-        expect(tokens[0]).toEqual({value: 'new', scopes: ['source.php', 'meta.class.php', 'keyword.other.new.php']});
-        expect(tokens[2]).toEqual({value: 'class', scopes: ['source.php', 'meta.class.php', 'storage.type.class.php']});
-        expect(tokens[3]).toEqual({value: '(', scopes: ['source.php', 'meta.class.php', 'meta.function-call.php', 'punctuation.definition.arguments.begin.bracket.round.php']});
-        expect(tokens[4]).toEqual({value: '\'', scopes: ['source.php', 'meta.class.php', 'meta.function-call.php', 'string.quoted.single.php', 'punctuation.definition.string.begin.php']});
-        expect(tokens[5]).toEqual({value: 'string', scopes: ['source.php', 'meta.class.php', 'meta.function-call.php', 'string.quoted.single.php']});
-        expect(tokens[6]).toEqual({value: '\'', scopes: ['source.php', 'meta.class.php', 'meta.function-call.php', 'string.quoted.single.php', 'punctuation.definition.string.end.php']});
-        expect(tokens[7]).toEqual({value: ',', scopes: ['source.php', 'meta.class.php', 'meta.function-call.php', 'punctuation.separator.delimiter.php']});
-        expect(tokens[9]).toEqual({value: 'optional', scopes: ['source.php', 'meta.class.php', 'meta.function-call.php', 'entity.name.variable.parameter.php']});
-        expect(tokens[10]).toEqual({value: ':', scopes: ['source.php', 'meta.class.php', 'meta.function-call.php', 'punctuation.separator.colon.php']});
-        expect(tokens[12]).toEqual({value: '123', scopes: ['source.php', 'meta.class.php', 'meta.function-call.php', 'constant.numeric.decimal.php']});
-        return expect(tokens[13]).toEqual({value: ')', scopes: ['source.php', 'meta.class.php', 'meta.function-call.php', 'punctuation.definition.arguments.end.bracket.round.php']});
-    });
-  });
-});
-
-  describe('enums', function() {
-    it('should tokenize enums correctly', function() {
-      const lines = grammar.tokenizeLines(`\
-enum Test {
-  case FOO;
-  case BAR;
-}\
-`
-      );
-
-      expect(lines[0][0]).toEqual({value: 'enum', scopes: ['source.php', 'meta.enum.php', 'storage.type.enum.php']});
-      expect(lines[0][2]).toEqual({value: 'Test', scopes: ['source.php', 'meta.enum.php', 'entity.name.type.enum.php']});
-      expect(lines[0][4]).toEqual({value: '{', scopes: ['source.php', 'meta.enum.php', 'punctuation.definition.enum.begin.bracket.curly.php']});
-      expect(lines[1][1]).toEqual({value: 'case', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'storage.modifier.php']});
-      expect(lines[1][3]).toEqual({value: 'FOO', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'constant.enum.php']});
-      expect(lines[1][4]).toEqual({value: ';', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'punctuation.terminator.expression.php']});
-      expect(lines[2][1]).toEqual({value: 'case', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'storage.modifier.php']});
-      expect(lines[2][3]).toEqual({value: 'BAR', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'constant.enum.php']});
-      expect(lines[2][4]).toEqual({value: ';', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'punctuation.terminator.expression.php']});
-      return expect(lines[3][0]).toEqual({value: '}', scopes: ['source.php', 'meta.enum.php', 'punctuation.definition.enum.end.bracket.curly.php']});
-  });
-
-    it('should tokenize backed enums correctly', function() {
-      const lines = grammar.tokenizeLines(`\
-enum HTTPMethods: string {
-  case GET = 'get';
-  case POST = 'post';
-}\
-`
-      );
-
-      expect(lines[0][0]).toEqual({value: 'enum', scopes: ['source.php', 'meta.enum.php', 'storage.type.enum.php']});
-      expect(lines[0][2]).toEqual({value: 'HTTPMethods', scopes: ['source.php', 'meta.enum.php', 'entity.name.type.enum.php']});
-      expect(lines[0][3]).toEqual({value: ':', scopes: ['source.php', 'meta.enum.php', 'keyword.operator.return-value.php']});
-      expect(lines[0][5]).toEqual({value: 'string', scopes: ['source.php', 'meta.enum.php', 'keyword.other.type.php']});
-      expect(lines[0][7]).toEqual({value: '{', scopes: ['source.php', 'meta.enum.php', 'punctuation.definition.enum.begin.bracket.curly.php']});
-      expect(lines[1][1]).toEqual({value: 'case', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'storage.modifier.php']});
-      expect(lines[1][3]).toEqual({value: 'GET', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'constant.enum.php']});
-      expect(lines[1][5]).toEqual({value: '=', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'keyword.operator.assignment.php']});
-      expect(lines[1][7]).toEqual({value: '\'', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'string.quoted.single.php', 'punctuation.definition.string.begin.php']});
-      expect(lines[1][8]).toEqual({value: 'get', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'string.quoted.single.php']});
-      expect(lines[1][9]).toEqual({value: '\'', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'string.quoted.single.php', 'punctuation.definition.string.end.php']});
-      expect(lines[1][10]).toEqual({value: ';', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'punctuation.terminator.expression.php']});
-      expect(lines[2][1]).toEqual({value: 'case', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'storage.modifier.php']});
-      expect(lines[2][3]).toEqual({value: 'POST', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'constant.enum.php']});
-      expect(lines[2][5]).toEqual({value: '=', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'keyword.operator.assignment.php']});
-      expect(lines[2][7]).toEqual({value: '\'', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'string.quoted.single.php', 'punctuation.definition.string.begin.php']});
-      expect(lines[2][8]).toEqual({value: 'post', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'string.quoted.single.php']});
-      expect(lines[2][9]).toEqual({value: '\'', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'string.quoted.single.php', 'punctuation.definition.string.end.php']});
-      expect(lines[2][10]).toEqual({value: ';', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'punctuation.terminator.expression.php']});
-      return expect(lines[3][0]).toEqual({value: '}', scopes: ['source.php', 'meta.enum.php', 'punctuation.definition.enum.end.bracket.curly.php']});
-  });
-
-    it('should tokenize enums with method correctly', function() {
-      const lines = grammar.tokenizeLines(`\
-enum HTTPStatus: int {
-  case OK = 200;
-  case NOT_FOUND = 404;
-
-  public function label(): string {}
-}\
-`
-      );
-
-      expect(lines[0][0]).toEqual({value: 'enum', scopes: ['source.php', 'meta.enum.php', 'storage.type.enum.php']});
-      expect(lines[0][2]).toEqual({value: 'HTTPStatus', scopes: ['source.php', 'meta.enum.php', 'entity.name.type.enum.php']});
-      expect(lines[0][3]).toEqual({value: ':', scopes: ['source.php', 'meta.enum.php', 'keyword.operator.return-value.php']});
-      expect(lines[0][5]).toEqual({value: 'int', scopes: ['source.php', 'meta.enum.php', 'keyword.other.type.php']});
-      expect(lines[0][7]).toEqual({value: '{', scopes: ['source.php', 'meta.enum.php', 'punctuation.definition.enum.begin.bracket.curly.php']});
-      expect(lines[1][1]).toEqual({value: 'case', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'storage.modifier.php']});
-      expect(lines[1][3]).toEqual({value: 'OK', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'constant.enum.php']});
-      expect(lines[1][5]).toEqual({value: '=', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'keyword.operator.assignment.php']});
-      expect(lines[1][7]).toEqual({value: '200', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'constant.numeric.decimal.php']});
-      expect(lines[2][1]).toEqual({value: 'case', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'storage.modifier.php']});
-      expect(lines[2][3]).toEqual({value: 'NOT_FOUND', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'constant.enum.php']});
-      expect(lines[2][5]).toEqual({value: '=', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'keyword.operator.assignment.php']});
-      expect(lines[2][7]).toEqual({value: '404', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'constant.numeric.decimal.php']});
-      expect(lines[4][1]).toEqual({value: 'public', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'meta.function.php', 'storage.modifier.php']});
-      expect(lines[4][3]).toEqual({value: 'function', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'meta.function.php', 'storage.type.function.php']});
-      expect(lines[4][5]).toEqual({value: 'label', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'meta.function.php', 'entity.name.function.php']});
-      expect(lines[4][6]).toEqual({value: '(', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'meta.function.php', 'punctuation.definition.parameters.begin.bracket.round.php']});
-      expect(lines[4][7]).toEqual({value: ')', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'meta.function.php', 'punctuation.definition.parameters.end.bracket.round.php']});
-      expect(lines[4][8]).toEqual({value: ':', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'meta.function.php', 'keyword.operator.return-value.php']});
-      expect(lines[4][10]).toEqual({value: 'string', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'meta.function.php', 'keyword.other.type.php']});
-      return expect(lines[5][0]).toEqual({value: '}', scopes: ['source.php', 'meta.enum.php', 'punctuation.definition.enum.end.bracket.curly.php']});
-  });
-
-    it('should tokenize enums implementing interfaces correctly', function() {
-      const {tokens} = grammar.tokenizeLine('enum FooEnum implements Foo {}');
-
-      expect(tokens[0]).toEqual({value: 'enum', scopes: ['source.php', 'meta.enum.php', 'storage.type.enum.php']});
-      expect(tokens[2]).toEqual({value: 'FooEnum', scopes: ['source.php', 'meta.enum.php', 'entity.name.type.enum.php']});
-      expect(tokens[4]).toEqual({value: 'implements', scopes: ['source.php', 'meta.enum.php', 'storage.modifier.implements.php']});
-      expect(tokens[6]).toEqual({value: 'Foo', scopes: ['source.php', 'meta.enum.php', 'entity.other.inherited-class.php']});
-      expect(tokens[8]).toEqual({value: '{', scopes: ['source.php', 'meta.enum.php', 'punctuation.definition.enum.begin.bracket.curly.php']});
-      return expect(tokens[9]).toEqual({value: '}', scopes: ['source.php', 'meta.enum.php', 'punctuation.definition.enum.end.bracket.curly.php']});
-  });
-
-    it('should tokenize switch in enum correctly', function() {
-      const lines = grammar.tokenizeLines(`\
-enum Foo {
-  case One;
-  public function test() {
-    switch(One){
-      case One:
-    }
-  }
-}\
-`
-      );
-
-      expect(lines[0][0]).toEqual({value: 'enum', scopes: ['source.php', 'meta.enum.php', 'storage.type.enum.php']});
-      expect(lines[0][2]).toEqual({value: 'Foo', scopes: ['source.php', 'meta.enum.php', 'entity.name.type.enum.php']});
-      expect(lines[1][1]).toEqual({value: 'case', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'storage.modifier.php']});
-      expect(lines[1][3]).toEqual({value: 'One', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'constant.enum.php']});
-      expect(lines[2][3]).toEqual({value: 'function', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'meta.function.php', 'storage.type.function.php']});
-      expect(lines[2][5]).toEqual({value: 'test', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'meta.function.php', 'entity.name.function.php']});
-      expect(lines[2][6]).toEqual({value: '(', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'meta.function.php', 'punctuation.definition.parameters.begin.bracket.round.php']});
-      expect(lines[2][7]).toEqual({value: ')', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'meta.function.php', 'punctuation.definition.parameters.end.bracket.round.php']});
-      expect(lines[2][9]).toEqual({value: '{', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'punctuation.definition.begin.bracket.curly.php']});
-      expect(lines[3][1]).toEqual({value: 'switch', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'meta.switch-statement.php', 'keyword.control.switch.php']});
-      expect(lines[3][2]).toEqual({value: '(', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'meta.switch-statement.php', 'punctuation.definition.switch-expression.begin.bracket.round.php']});
-      expect(lines[3][3]).toEqual({value: 'One', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'meta.switch-statement.php', 'constant.other.php']});
-      expect(lines[3][4]).toEqual({value: ')', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'meta.switch-statement.php', 'punctuation.definition.switch-expression.end.bracket.round.php']});
-      expect(lines[3][5]).toEqual({value: '{', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'meta.switch-statement.php', 'punctuation.definition.section.switch-block.begin.bracket.curly.php']});
-      expect(lines[4][1]).toEqual({value: 'case', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'meta.switch-statement.php', 'keyword.control.case.php']});
-      expect(lines[4][3]).toEqual({value: 'One', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'meta.switch-statement.php', 'constant.other.php']});
-      expect(lines[4][4]).toEqual({value: ':', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'meta.switch-statement.php', 'punctuation.terminator.statement.php']});
-      expect(lines[5][1]).toEqual({value: '}', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'meta.switch-statement.php', 'punctuation.definition.section.switch-block.end.bracket.curly.php']});
-      expect(lines[6][1]).toEqual({value: '}', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'punctuation.definition.end.bracket.curly.php']});
-      return expect(lines[7][0]).toEqual({value: '}', scopes: ['source.php', 'meta.enum.php', 'punctuation.definition.enum.end.bracket.curly.php']});
-  });
-
-    return it('should tokenize constants in enums correctly', function() {
-      const lines = grammar.tokenizeLines(`\
-enum Foo : int {
-  case Bar = 1;
-  const Baz = 1;
-}\
-`
-      );
-
-      expect(lines[0][0]).toEqual({value: 'enum', scopes: ['source.php', 'meta.enum.php', 'storage.type.enum.php']});
-      expect(lines[0][2]).toEqual({value: 'Foo', scopes: ['source.php', 'meta.enum.php', 'entity.name.type.enum.php']});
-      expect(lines[0][4]).toEqual({value: ':', scopes: ['source.php', 'meta.enum.php', 'keyword.operator.return-value.php']});
-      expect(lines[0][6]).toEqual({value: 'int', scopes: ['source.php', 'meta.enum.php', 'keyword.other.type.php']});
-      expect(lines[0][8]).toEqual({value: '{', scopes: ['source.php', 'meta.enum.php', 'punctuation.definition.enum.begin.bracket.curly.php']});
-      expect(lines[1][1]).toEqual({value: 'case', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'storage.modifier.php']});
-      expect(lines[1][3]).toEqual({value: 'Bar', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'constant.enum.php']});
-      expect(lines[1][5]).toEqual({value: '=', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'keyword.operator.assignment.php']});
-      expect(lines[1][7]).toEqual({value: '1', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'constant.numeric.decimal.php']});
-      expect(lines[1][8]).toEqual({value: ';', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'punctuation.terminator.expression.php']});
-      expect(lines[2][1]).toEqual({value: 'const', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'storage.modifier.php']});
-      expect(lines[2][3]).toEqual({value: 'Baz', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'constant.other.php']});
-      expect(lines[2][5]).toEqual({value: '=', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'keyword.operator.assignment.php']});
-      expect(lines[2][7]).toEqual({value: '1', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'constant.numeric.decimal.php']});
-      expect(lines[2][8]).toEqual({value: ';', scopes: ['source.php', 'meta.enum.php', 'meta.enum.body.php', 'punctuation.terminator.expression.php']});
-      return expect(lines[3][0]).toEqual({value: '}', scopes: ['source.php', 'meta.enum.php', 'punctuation.definition.enum.end.bracket.curly.php']});
   });
 });
 
@@ -3305,8 +3105,8 @@ invalid*/$a=1;\
     expect(tokens[8]).toEqual({value: ' ', scopes: ['source.php', 'meta.interface.php']});
     expect(tokens[9]).toEqual({value: 'Plane', scopes: ['source.php', 'meta.interface.php', 'entity.other.inherited-class.php']});
     expect(tokens[10]).toEqual({value: ' ', scopes: ['source.php', 'meta.interface.php']});
-    expect(tokens[11]).toEqual({value: '{', scopes: ['source.php', 'meta.interface.php', 'punctuation.definition.interface.begin.bracket.curly.php']});
-    return expect(tokens[12]).toEqual({value: '}', scopes: ['source.php', 'meta.interface.php', 'punctuation.definition.interface.end.bracket.curly.php']});
+    expect(tokens[11]).toEqual({value: '{', scopes: ['source.php', 'punctuation.definition.begin.bracket.curly.php']});
+    return expect(tokens[12]).toEqual({value: '}', scopes: ['source.php', 'punctuation.definition.end.bracket.curly.php']});
 });
 
   it('should tokenize methods in interface correctly', function() {
@@ -3320,20 +3120,20 @@ interface Test {
 
     expect(lines[0][0]).toEqual({value: 'interface', scopes: ['source.php', 'meta.interface.php', 'storage.type.interface.php']});
     expect(lines[0][2]).toEqual({value: 'Test', scopes: ['source.php', 'meta.interface.php', 'entity.name.type.interface.php']});
-    expect(lines[0][4]).toEqual({value: '{', scopes: ['source.php', 'meta.interface.php', 'punctuation.definition.interface.begin.bracket.curly.php']});
-    expect(lines[1][1]).toEqual({value: 'public', scopes: ['source.php', 'meta.interface.php', 'meta.interface.body.php', 'meta.function.php', 'storage.modifier.php']});
-    expect(lines[1][3]).toEqual({value: 'function', scopes: ['source.php', 'meta.interface.php', 'meta.interface.body.php', 'meta.function.php', 'storage.type.function.php']});
-    expect(lines[1][5]).toEqual({value: 'testMethod', scopes: ['source.php', 'meta.interface.php', 'meta.interface.body.php', 'meta.function.php', 'entity.name.function.php']});
-    expect(lines[1][6]).toEqual({value: '(', scopes: ['source.php', 'meta.interface.php', 'meta.interface.body.php', 'meta.function.php', 'punctuation.definition.parameters.begin.bracket.round.php']});
-    expect(lines[1][7]).toEqual({value: ')', scopes: ['source.php', 'meta.interface.php', 'meta.interface.body.php', 'meta.function.php', 'punctuation.definition.parameters.end.bracket.round.php']});
-    expect(lines[1][8]).toEqual({value: ';', scopes: ['source.php', 'meta.interface.php', 'meta.interface.body.php', 'punctuation.terminator.expression.php']});
-    expect(lines[2][1]).toEqual({value: 'public', scopes: ['source.php', 'meta.interface.php', 'meta.interface.body.php', 'meta.function.php', 'storage.modifier.php']});
-    expect(lines[2][3]).toEqual({value: 'function', scopes: ['source.php', 'meta.interface.php', 'meta.interface.body.php', 'meta.function.php', 'storage.type.function.php']});
-    expect(lines[2][5]).toEqual({value: '__toString', scopes: ['source.php', 'meta.interface.php', 'meta.interface.body.php', 'meta.function.php', 'support.function.magic.php']});
-    expect(lines[2][6]).toEqual({value: '(', scopes: ['source.php', 'meta.interface.php', 'meta.interface.body.php', 'meta.function.php', 'punctuation.definition.parameters.begin.bracket.round.php']});
-    expect(lines[2][7]).toEqual({value: ')', scopes: ['source.php', 'meta.interface.php', 'meta.interface.body.php', 'meta.function.php', 'punctuation.definition.parameters.end.bracket.round.php']});
-    expect(lines[2][8]).toEqual({value: ';', scopes: ['source.php', 'meta.interface.php', 'meta.interface.body.php', 'punctuation.terminator.expression.php']});
-    return expect(lines[3][0]).toEqual({value: '}', scopes: ['source.php', 'meta.interface.php', 'punctuation.definition.interface.end.bracket.curly.php']});
+    expect(lines[0][4]).toEqual({value: '{', scopes: ['source.php', 'punctuation.definition.begin.bracket.curly.php']});
+    expect(lines[1][1]).toEqual({value: 'public', scopes: ['source.php', 'meta.function.php', 'storage.modifier.php']});
+    expect(lines[1][3]).toEqual({value: 'function', scopes: ['source.php', 'meta.function.php', 'storage.type.function.php']});
+    expect(lines[1][5]).toEqual({value: 'testMethod', scopes: ['source.php', 'meta.function.php', 'entity.name.function.php']});
+    expect(lines[1][6]).toEqual({value: '(', scopes: ['source.php', 'meta.function.php', 'punctuation.definition.parameters.begin.bracket.round.php']});
+    expect(lines[1][7]).toEqual({value: ')', scopes: ['source.php', 'meta.function.php', 'punctuation.definition.parameters.end.bracket.round.php']});
+    expect(lines[1][8]).toEqual({value: ';', scopes: ['source.php', 'punctuation.terminator.expression.php']});
+    expect(lines[2][1]).toEqual({value: 'public', scopes: ['source.php', 'meta.function.php', 'storage.modifier.php']});
+    expect(lines[2][3]).toEqual({value: 'function', scopes: ['source.php', 'meta.function.php', 'storage.type.function.php']});
+    expect(lines[2][5]).toEqual({value: '__toString', scopes: ['source.php', 'meta.function.php', 'support.function.magic.php']});
+    expect(lines[2][6]).toEqual({value: '(', scopes: ['source.php', 'meta.function.php', 'punctuation.definition.parameters.begin.bracket.round.php']});
+    expect(lines[2][7]).toEqual({value: ')', scopes: ['source.php', 'meta.function.php', 'punctuation.definition.parameters.end.bracket.round.php']});
+    expect(lines[2][8]).toEqual({value: ';', scopes: ['source.php', 'punctuation.terminator.expression.php']});
+    return expect(lines[3][0]).toEqual({value: '}', scopes: ['source.php', 'punctuation.definition.end.bracket.curly.php']});
 });
 
   it('should tokenize trait correctly', function() {
@@ -3343,8 +3143,8 @@ interface Test {
     expect(tokens[1]).toEqual({value: ' ', scopes: ['source.php', 'meta.trait.php']});
     expect(tokens[2]).toEqual({value: 'Test', scopes: ['source.php', 'meta.trait.php', 'entity.name.type.trait.php']});
     expect(tokens[3]).toEqual({value: ' ', scopes: ['source.php', 'meta.trait.php']});
-    expect(tokens[4]).toEqual({value: '{', scopes: ['source.php', 'meta.trait.php', 'punctuation.definition.trait.begin.bracket.curly.php']});
-    return expect(tokens[5]).toEqual({value: '}', scopes: ['source.php', 'meta.trait.php', 'punctuation.definition.trait.end.bracket.curly.php']});
+    expect(tokens[4]).toEqual({value: '{', scopes: ['source.php', 'punctuation.definition.begin.bracket.curly.php']});
+    return expect(tokens[5]).toEqual({value: '}', scopes: ['source.php', 'punctuation.definition.end.bracket.curly.php']});
 });
 
   it('should tokenize use const correctly', function() {
@@ -3969,76 +3769,6 @@ SQL;\
       expect(lines[1][5].value).toEqual(' table');
       expect(lines[1][5].scopes).toContainAll(['source.php', 'string.unquoted.nowdoc.php', 'meta.embedded.sql', 'source.sql']);
       expect(lines[2][0]).toEqual({value: 'SQL', scopes: ['source.php', 'string.unquoted.nowdoc.php', 'meta.embedded.sql', 'punctuation.section.embedded.end.php', 'keyword.operator.nowdoc.php']});
-      return expect(lines[2][1]).toEqual({value: ';', scopes: ['source.php', 'punctuation.terminator.expression.php']});});
-});
-
-  it('should tokenize a heredoc with embedded DQL correctly', function() {
-    waitsForPromise(() => atom.packages.activatePackage('language-sql'));
-
-    return runs(function() {
-      const lines = grammar.tokenizeLines(`\
-$a = <<<DQL
-SELECT * FROM table
-DQL;\
-`
-      );
-
-      expect(lines[0][0]).toEqual({value: '$', scopes: ['source.php', 'variable.other.php', 'punctuation.definition.variable.php']});
-      expect(lines[0][1]).toEqual({value: 'a', scopes: ['source.php', 'variable.other.php']});
-      expect(lines[0][2]).toEqual({value: ' ', scopes: ['source.php']});
-      expect(lines[0][3]).toEqual({value: '=', scopes: ['source.php', 'keyword.operator.assignment.php']});
-      expect(lines[0][4]).toEqual({value: ' ', scopes: ['source.php']});
-      expect(lines[0][5]).toEqual({value: '<<<', scopes: ['source.php', 'string.unquoted.heredoc.php', 'meta.embedded.sql', 'punctuation.section.embedded.begin.php', 'punctuation.definition.string.php']});
-      expect(lines[0][6]).toEqual({value: 'DQL', scopes: ['source.php', 'string.unquoted.heredoc.php', 'meta.embedded.sql', 'punctuation.section.embedded.begin.php', 'keyword.operator.heredoc.php']});
-      expect(lines[1][0].value).toEqual('SELECT');
-      expect(lines[1][0].scopes).toContainAll(['source.php', 'string.unquoted.heredoc.php', 'meta.embedded.sql', 'source.sql']);
-      expect(lines[1][1].value).toEqual(' ');
-      expect(lines[1][1].scopes).toContainAll(['source.php', 'string.unquoted.heredoc.php', 'meta.embedded.sql', 'source.sql']);
-      expect(lines[1][2].value).toEqual('*');
-      expect(lines[1][2].scopes).toContainAll(['source.php', 'string.unquoted.heredoc.php', 'meta.embedded.sql', 'source.sql']);
-      expect(lines[1][3].value).toEqual(' ');
-      expect(lines[1][3].scopes).toContainAll(['source.php', 'string.unquoted.heredoc.php', 'meta.embedded.sql', 'source.sql']);
-      expect(lines[1][4].value).toEqual('FROM');
-      expect(lines[1][4].scopes).toContainAll(['source.php', 'string.unquoted.heredoc.php', 'meta.embedded.sql', 'source.sql']);
-      expect(lines[1][5].value).toEqual(' table');
-      expect(lines[1][5].scopes).toContainAll(['source.php', 'string.unquoted.heredoc.php', 'meta.embedded.sql', 'source.sql']);
-      expect(lines[2][0]).toEqual({value: 'DQL', scopes: ['source.php', 'string.unquoted.heredoc.php', 'meta.embedded.sql', 'punctuation.section.embedded.end.php', 'keyword.operator.heredoc.php']});
-      return expect(lines[2][1]).toEqual({value: ';', scopes: ['source.php', 'punctuation.terminator.expression.php']});});
-});
-
-  it('should tokenize a nowdoc with embedded DQL correctly', function() {
-    waitsForPromise(() => atom.packages.activatePackage('language-sql'));
-
-    return runs(function() {
-      const lines = grammar.tokenizeLines(`\
-$a = <<<'DQL'
-SELECT * FROM table
-DQL;\
-`
-      );
-
-      expect(lines[0][0]).toEqual({value: '$', scopes: ['source.php', 'variable.other.php', 'punctuation.definition.variable.php']});
-      expect(lines[0][1]).toEqual({value: 'a', scopes: ['source.php', 'variable.other.php']});
-      expect(lines[0][2]).toEqual({value: ' ', scopes: ['source.php']});
-      expect(lines[0][3]).toEqual({value: '=', scopes: ['source.php', 'keyword.operator.assignment.php']});
-      expect(lines[0][4]).toEqual({value: ' ', scopes: ['source.php']});
-      expect(lines[0][5]).toEqual({value: '<<<', scopes: ['source.php', 'string.unquoted.nowdoc.php', 'meta.embedded.sql', 'punctuation.section.embedded.begin.php', 'punctuation.definition.string.php']});
-      expect(lines[0][6]).toEqual({value: '\'', scopes: ['source.php', 'string.unquoted.nowdoc.php', 'meta.embedded.sql', 'punctuation.section.embedded.begin.php']});
-      expect(lines[0][7]).toEqual({value: 'DQL', scopes: ['source.php', 'string.unquoted.nowdoc.php', 'meta.embedded.sql', 'punctuation.section.embedded.begin.php', 'keyword.operator.nowdoc.php']});
-      expect(lines[0][8]).toEqual({value: '\'', scopes: ['source.php', 'string.unquoted.nowdoc.php', 'meta.embedded.sql', 'punctuation.section.embedded.begin.php']});
-      expect(lines[1][0].value).toEqual('SELECT');
-      expect(lines[1][0].scopes).toContainAll(['source.php', 'string.unquoted.nowdoc.php', 'meta.embedded.sql', 'source.sql']);
-      expect(lines[1][1].value).toEqual(' ');
-      expect(lines[1][1].scopes).toContainAll(['source.php', 'string.unquoted.nowdoc.php', 'meta.embedded.sql', 'source.sql']);
-      expect(lines[1][2].value).toEqual('*');
-      expect(lines[1][2].scopes).toContainAll(['source.php', 'string.unquoted.nowdoc.php', 'meta.embedded.sql', 'source.sql']);
-      expect(lines[1][3].value).toEqual(' ');
-      expect(lines[1][3].scopes).toContainAll(['source.php', 'string.unquoted.nowdoc.php', 'meta.embedded.sql', 'source.sql']);
-      expect(lines[1][4].value).toEqual('FROM');
-      expect(lines[1][4].scopes).toContainAll(['source.php', 'string.unquoted.nowdoc.php', 'meta.embedded.sql', 'source.sql']);
-      expect(lines[1][5].value).toEqual(' table');
-      expect(lines[1][5].scopes).toContainAll(['source.php', 'string.unquoted.nowdoc.php', 'meta.embedded.sql', 'source.sql']);
-      expect(lines[2][0]).toEqual({value: 'DQL', scopes: ['source.php', 'string.unquoted.nowdoc.php', 'meta.embedded.sql', 'punctuation.section.embedded.end.php', 'keyword.operator.nowdoc.php']});
       return expect(lines[2][1]).toEqual({value: ';', scopes: ['source.php', 'punctuation.terminator.expression.php']});});
 });
 
