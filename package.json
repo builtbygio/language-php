@@ -1,6 +1,6 @@
 {
   "name": "language-php",
-  "version": "0.50.0",
+  "version": "0.50.1",
   "description": "PHP language support in Chevron",
   "keywords": [
     "tree-sitter"
